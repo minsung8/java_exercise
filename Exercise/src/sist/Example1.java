@@ -12,11 +12,10 @@ class Employee{
 	public void setName(String name) {
 		this.name = name;
 	}
-	
+
 	int getPay(){
 		return 0;
 	}
-	
 }
 
 class Permanent extends Employee{
