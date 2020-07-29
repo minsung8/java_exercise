@@ -42,7 +42,6 @@ class Mythread2 extends Thread{
 			}
 		}
 	}
-	
 }
 
 public class Example5 {
