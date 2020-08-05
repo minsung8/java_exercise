@@ -10,7 +10,7 @@ import java.io.ObjectOutputStream;
 public class EmpMngSerializable {
 	
 	// 직렬화하는 메서드 생성하기(메모리상에 올라온 객체를 하드디스크 파일에 저장) <-> 역직렬화
-	public void objectToFileSave(Object obj, String saveFilename) {
+	public int objectToFileSave(Object obj, String saveFilename) {
 		
 		// 객체 obj를 saveFilename로 저장
 		try {
@@ -28,8 +28,10 @@ public class EmpMngSerializable {
 			bufOst.close();
 			fost.close();			// 사용된 객체를 메모리공간에서 제거
 			
+			return 1;
 		} catch (Exception e) {
 			e.printStackTrace();
+			return 0;
 		}	
 	}
 	
@@ -54,7 +56,6 @@ public class EmpMngSerializable {
 			return obj;
 					
 		} catch (Exception e) {
-			e.printStackTrace();
 		}
 		return null;		// 예외처리일 경우
 	}
