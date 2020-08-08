@@ -17,6 +17,6 @@ public interface InterLibrarymngctrl {
 	void registerUser(Scanner sc);
 	UserDTO loginUser(Scanner sc);
 	void searchBook(Scanner sc);
-	void myRentalBookInfo(Scanner sc);
+	void myRentalBookInfo(Scanner sc, UserDTO userDTO);
 	
 }

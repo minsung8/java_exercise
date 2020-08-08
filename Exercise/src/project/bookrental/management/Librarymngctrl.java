@@ -15,6 +15,7 @@ public class Librarymngctrl implements InterLibrarymngctrl{
 	private final String BOOKINFOLIST = "C:\\iotestdata\\project\\library\\bookinfolist.dat";
 	private final String USERLIST = "C:\\iotestdata\\project\\library\\userlist.dat";
 	private final String SEPERATEBOOKLIST = "C:\\iotestdata\\project\\library\\seperatebooklist.dat";
+	private final String RENTALTASKLIST = "C:\\iotestdata\\project\\library\\rentaltasklist.dat";
 	private EmpMngSerializable serial2 = new EmpMngSerializable();
 	private Object libListObj;
 
@@ -255,9 +256,19 @@ public class Librarymngctrl implements InterLibrarymngctrl{
 
 	@Override
 	public void lendBook(Scanner sc) {
+		
+		ArrayList<RentalTaskDTO> rentalList = new ArrayList<RentalTaskDTO>();
+		Object rentalListObj = serial2.getObjectFromFile(RENTALTASKLIST);
+		rentalList = (ArrayList<RentalTaskDTO>) rentalListObj;
+		File file = new File(RENTALTASKLIST);
+		if (!file.exists()) {
+			rentalList =  new ArrayList<RentalTaskDTO>();
+		}
+
 		ArrayList<UserDTO> list = new ArrayList<UserDTO>();
 		Object libListObj = serial2.getObjectFromFile(USERLIST);
 		list = (ArrayList<UserDTO>) libListObj;
+		
 		boolean confirm = false;
 		System.out.println(">>> 도서대여하기 <<<");
 		String id = null;
@@ -267,7 +278,7 @@ public class Librarymngctrl implements InterLibrarymngctrl{
 			id = sc.nextLine();
 			if (!id.trim().isEmpty() && list != null) {
 				for (int i=0; i<list.size(); i++) {
-					if (list.get(i).equals(id)) {
+					if (list.get(i).getId().equals(id)) {
 						confirm = true;
 						user = list.get(i);
 						break;
@@ -287,7 +298,7 @@ public class Librarymngctrl implements InterLibrarymngctrl{
 		boolean confirm2 = false;
 		ArrayList<SeperateBookDTO> book_list = new ArrayList<SeperateBookDTO>();
 		String bookId = null;
-		SeperateBookDTO temp_book = new SeperateBookDTO();
+		SeperateBookDTO seperateBookDTO = new SeperateBookDTO();
 		for (int i=0; i<Integer.parseInt(cnt); i++) {
 			while (true) {
 				System.out.println("▶도서ID :");
@@ -295,55 +306,88 @@ public class Librarymngctrl implements InterLibrarymngctrl{
 				for (int j=0; j<list2.size(); j++) {
 					if (list2.get(j).getBookid().equals(bookId)) {
 						confirm2 = true;
-						list2.get(i).setUserdto(user);
 						list2.get(i).setRent(true);
-						temp_book = list2.get(i);
+						seperateBookDTO = list2.get(i);
 						break;
 					}
 				}
 				if (confirm2 == false) System.out.println("~~~ 존재하지 않는 도서ID 입니다. 다시 입력하세요!! ~~~");
 				else break;
-				}
 			}
-		book_list.add(temp_book);
+		}
+
+		RentalTaskDTO rentalTaskDTO = new RentalTaskDTO(seperateBookDTO, user);
+		rentalTaskDTO.setRentalDay();
+		rentalList.add(rentalTaskDTO);
+		
+		int m = serial2.objectToFileSave(rentalList, RENTALTASKLIST);
 		int n = serial2.objectToFileSave(list2, SEPERATEBOOKLIST);
-		System.out.println(">>> 대여등록 성공!! <<<");
-		System.out.println(">>> 대여도서 비치중에서 대여중으로 변경함 <<<");
+		if (n == 1 && m == 1) {
+			System.out.println(">>> 대여등록 성공!! <<<");
+			System.out.println(">>> 대여도서 비치중에서 대여중으로 변경함 <<<");
+		}
 	}
 
 	@Override
 	public void lendingBookInfo(Scanner sc) {
-		ArrayList<SeperateBookDTO> list = new ArrayList<SeperateBookDTO>();
+		ArrayList<RentalTaskDTO> list = new ArrayList<RentalTaskDTO>();
 		
-		Object libListObj2 = serial2.getObjectFromFile(SEPERATEBOOKLIST);
-		list = (ArrayList<SeperateBookDTO>) libListObj2;
+		Object libListObj2 = serial2.getObjectFromFile(RENTALTASKLIST);
+		list = (ArrayList<RentalTaskDTO>) libListObj2;
 		System.out.println("=======================================================================================================");
-		System.out.println("ISBN		도서아이디		도서명	 	작가명		출판사	 	가격		대여상태");
+		System.out.println("도서ID		ISBN		도서명	 	작가명		출판사	 	회원ID	연락처 	대여일자 	  반납예정일");
 		System.out.println("=======================================================================================================");
 		if (list.size() == 0) {
 			System.out.println("~~~~ 대여해가신 도서가 없습니다. ~~~~");
 		}
 		for (int i=0; i<list.size(); i++) {
-			if(list.get(i).isRent == true) {
-				System.out.print(list.get(i).toString());
-				System.out.println(" " + list.get(i).userdto.getId());
+			if(list.get(i).getSeperateBookDTO().isRent == true) {
+				System.out.print(list.get(i).getSeperateBookDTO().toString());
+				System.out.print(" " + list.get(i).getUserDTO().getId() + " " + list.get(i).getUserDTO().getName() + " " +list.get(i).getUserDTO().getPhone());
+				System.out.println("  " + list.get(i).getRentalDay() + "    " + list.get(i).getReturnDay());
 			}
 		}
 	}
 
 	@Override
 	public void returnBook(Scanner sc) {
-		// TODO Auto-generated method stub
 		
+		ArrayList<RentalTaskDTO> list = new ArrayList<RentalTaskDTO>();
+		Object libListObj2 = serial2.getObjectFromFile(RENTALTASKLIST);
+		list = (ArrayList<RentalTaskDTO>) libListObj2;
+		
+		int total = 0;
+		System.out.println(">>> 도서반납하기 <<<");
+		System.out.println("▶총반납권수 : ");
+		String cnt = sc.nextLine();
+
+		for (int i=0; i<Integer.parseInt(cnt); i++) {
+			boolean confirm = false;
+			while (true) {
+				System.out.println("▶반납도서ID : ");
+				String id = sc.nextLine();
+				for (int j=0; j<list.size(); j++) {
+					if (list.get(i).getSeperateBookDTO().getBookid().equals(id)) {
+						confirm = true; 
+						total += Integer.parseInt((list.get(i).getArrears(list.get(i).getReturnDay())));
+						System.out.println("도서별 연체로 : " + (Integer.parseInt((list.get(i).getArrears(list.get(i).getReturnDay()))) * 200) + "원");
+						
+						break;
+					} 
+				}
+				if (confirm == true) {
+					break;
+				}
+			}
+		}
+		System.out.println("▶연체료 총계: "+ (total * 200) + "원");
 	}
-	
 	
 	@Override
 	public void onlyUser(Scanner sc) {
 		
 		UserDTO user = null;
 		boolean login = false;
-		
 		while (true) {
 			if (login == true) System.out.println("===> 일반회원 전용 Menu [" +user.name + "...] <===");
 			else System.out.println("===> 일반회원 전용 Menu <===");
@@ -360,7 +404,9 @@ public class Librarymngctrl implements InterLibrarymngctrl{
 			}else if (temp.equals("4")) {
 				searchBook(sc);
 			}else if (temp.equals("5")) {
-				myRentalBookInfo(sc);
+				if (login == false) {
+					System.out.println("로그인을 해야 합니다");
+				} else myRentalBookInfo(sc, user);
 			}else if (temp.equals("6")) {
 				break;
 			}
@@ -451,7 +497,10 @@ public class Librarymngctrl implements InterLibrarymngctrl{
 		System.out.println("▶출판사명 :");
 		String publisher = sc.nextLine();
 		
-		ArrayList<SeperateBookDTO> answer = new ArrayList<SeperateBookDTO>();
+		ArrayList<SeperateBookDTO> answer_category = new ArrayList<SeperateBookDTO>();
+		ArrayList<SeperateBookDTO> answer_bookname = new ArrayList<SeperateBookDTO>();
+		ArrayList<SeperateBookDTO> answer_author = new ArrayList<SeperateBookDTO>();
+		ArrayList<SeperateBookDTO> answer_publisher = new ArrayList<SeperateBookDTO>();
 		
 		ArrayList<SeperateBookDTO> list = new ArrayList<SeperateBookDTO>();
 		
@@ -462,45 +511,75 @@ public class Librarymngctrl implements InterLibrarymngctrl{
 			if (!category.trim().isEmpty()) {
 				for (int c=0; c<list.size(); c++) {
 					if (list.get(c).getBookdto().getCategory().equals(category)) {
-						answer.add(list.get(c));
+						answer_category.add(list.get(c));
 					}
 				} 
+			} else {
+				answer_category = list;
 			}
 			if (!bookname.trim().isEmpty()) {
 				for (int c=0; c<list.size(); c++) {
-					if (list.get(c).getBookdto().getBookname().equals(bookname)) answer.add(list.get(c));
+					if (list.get(c).getBookdto().getBookname().equals(bookname)) answer_bookname.add(list.get(c));
 				}
+			} else {
+				answer_bookname = list;
 			}
 			if (!author.trim().isEmpty()) {
 				for (int c=0; c<list.size(); c++) {
-					if (list.get(c).getBookdto().getAuthor().equals(author)) answer.add(list.get(c));
+					if (list.get(c).getBookdto().getAuthor().equals(author)) answer_author.add(list.get(c));
 				}
+			} else {
+				answer_author = list;
 			}
 			if (!publisher.trim().isEmpty()) {
 				for (int c=0; c<list.size(); c++) {
-					if (list.get(c).getBookdto().getPublisher().equals(publisher)) answer.add(list.get(c));
+					if (list.get(c).getBookdto().getPublisher().equals(publisher)) answer_publisher.add(list.get(c));
 				}
+			} else {
+				answer_publisher = list;
 			}
 		} 
+		
 		// 출력  
 		System.out.println("=======================================================================================================");
 		System.out.println("ISBN		도서아이디		도서명	 	작가명		출판사	 	가격		대여상태");
 		System.out.println("=======================================================================================================");
-		if (answer.size() == 0) {
+		if (answer_category.size() == 0 && answer_bookname.size() == 0 && answer_author.size() == 0 && answer_publisher.size() == 0) {
 			System.out.println("~~~~ 검색에 일치하는 도서가 없습니다 ~~~~");
 		}
 		String temp = null;
-		for (int i=0; i<answer.size(); i++) {
-			if (answer.get(i).isRent == false) temp = "비치중";
-			else temp = "대여중";
-			System.out.print(answer.get(i).toString()); 
-			System.out.printf("		%,d", Integer.parseInt(answer.get(i).getBookdto().getPrice()));
-			System.out.printf("		%s\n", temp);
+		for (int i=0; i<list.size(); i++) {
+			if (answer_category.contains(list.get(i)) && answer_bookname.contains(list.get(i)) && answer_author.contains(list.get(i)) && answer_publisher.contains(list.get(i))) {
+				if (list.get(i).isRent == false) temp = "비치중";
+				else temp = "대여중";
+				System.out.print(list.get(i).toString()); 
+				System.out.printf("		%,d", Integer.parseInt(list.get(i).getBookdto().getPrice()));
+				System.out.printf("		%s\n", temp);
+			}
 		}
 	}
 
 	@Override
-	public void myRentalBookInfo(Scanner sc) {
+	public void myRentalBookInfo(Scanner sc, UserDTO userDTO) {
+		ArrayList<RentalTaskDTO> list = new ArrayList<RentalTaskDTO>();
+		ArrayList<RentalTaskDTO> answer = new ArrayList<RentalTaskDTO>();
 		
+		Object libListObj2 = serial2.getObjectFromFile(RENTALTASKLIST);
+		list = (ArrayList<RentalTaskDTO>) libListObj2;
+		System.out.println("=======================================================================================================");
+		System.out.println("도서ID		ISBN		도서명	 	작가명		출판사	 	회원ID	연락처 	대여일자 	  반납예정일");
+		System.out.println("=======================================================================================================");
+		
+		for (int i=0; i<list.size(); i++) {
+			if (list.get(i).getUserDTO().getId().equals(userDTO.getId())) answer.add(list.get(i));
+		}
+		if (answer.size() == 0) System.out.println("~~~ 대여해가신 도서가 없습니다 ~~~");
+		else {
+			for (int i=0; i<answer.size(); i++) {
+				System.out.print(answer.get(i).getSeperateBookDTO().toString());
+				System.out.print(" " + answer.get(i).getUserDTO().getId() + " " + answer.get(i).getUserDTO().getName() + " " +answer.get(i).getUserDTO().getPhone());
+				System.out.println("  " + answer.get(i).getRentalDay() + "    " + answer.get(i).getReturnDay());
+			}
+		}
 	}
 }

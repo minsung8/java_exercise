@@ -11,7 +11,6 @@ public class SeperateBookDTO implements Serializable{
 	String bookid;
 	boolean isRent;
 	BookDTO bookdto;
-	UserDTO userdto;
 	
 	public SeperateBookDTO () {}
 	
@@ -33,7 +32,7 @@ public class SeperateBookDTO implements Serializable{
 	} 
 	public BookDTO getBookdto() {
 		return bookdto;
-	}
+	} 
 	public void setBookdto(BookDTO bookdto) {
 		this.bookdto = bookdto;
 	}
@@ -43,13 +42,7 @@ public class SeperateBookDTO implements Serializable{
 		return bookdto.getIsbn() + "   " + bookid + "      " + bookdto.getBookname() + "	" + bookdto.getAuthor() + "		" + bookdto.getPublisher();		
 	}
 
-	public UserDTO getUserdto() {
-		return userdto;
-	}
 
-	public void setUserdto(UserDTO userdto) {
-		this.userdto = userdto;
-	}
 	
 	
 }
