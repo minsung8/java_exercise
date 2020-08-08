@@ -371,7 +371,8 @@ public class Librarymngctrl implements InterLibrarymngctrl{
 						confirm = true; 
 						total += Integer.parseInt((list.get(i).getArrears(list.get(i).getReturnDay())));
 						System.out.println("도서별 연체로 : " + (Integer.parseInt((list.get(i).getArrears(list.get(i).getReturnDay()))) * 200) + "원");
-						
+						list.get(i).getSeperateBookDTO().setRent(false);
+						list.remove(i);
 						break;
 					} 
 				}
@@ -380,7 +381,9 @@ public class Librarymngctrl implements InterLibrarymngctrl{
 				}
 			}
 		}
+		int n = serial2.objectToFileSave(list, RENTALTASKLIST);
 		System.out.println("▶연체료 총계: "+ (total * 200) + "원");
+		
 	}
 	
 	@Override
