@@ -509,6 +509,10 @@ public class Librarymngctrl implements InterLibrarymngctrl{
 		
 		Object libListObj2 = serial2.getObjectFromFile(SEPERATEBOOKLIST);
 		list = (ArrayList<SeperateBookDTO>) libListObj2;
+		boolean flag1 = false;
+		boolean flag2 = false;
+		boolean flag3 = false;
+		boolean flag4 = false;
 		if (list != null) {
 			System.out.println(list.size());
 			if (!category.trim().isEmpty()) {
@@ -518,6 +522,7 @@ public class Librarymngctrl implements InterLibrarymngctrl{
 					}
 				} 
 			} else {
+				flag1 = true;
 				answer_category = list;
 			}
 			if (!bookname.trim().isEmpty()) {
@@ -525,6 +530,7 @@ public class Librarymngctrl implements InterLibrarymngctrl{
 					if (list.get(c).getBookdto().getBookname().equals(bookname)) answer_bookname.add(list.get(c));
 				}
 			} else {
+				flag2 = true;
 				answer_bookname = list;
 			}
 			if (!author.trim().isEmpty()) {
@@ -532,6 +538,7 @@ public class Librarymngctrl implements InterLibrarymngctrl{
 					if (list.get(c).getBookdto().getAuthor().equals(author)) answer_author.add(list.get(c));
 				}
 			} else {
+				flag3 = true;
 				answer_author = list;
 			}
 			if (!publisher.trim().isEmpty()) {
@@ -539,6 +546,7 @@ public class Librarymngctrl implements InterLibrarymngctrl{
 					if (list.get(c).getBookdto().getPublisher().equals(publisher)) answer_publisher.add(list.get(c));
 				}
 			} else {
+				flag4 = true;
 				answer_publisher = list;
 			}
 		} 
@@ -547,7 +555,7 @@ public class Librarymngctrl implements InterLibrarymngctrl{
 		System.out.println("=======================================================================================================");
 		System.out.println("ISBN		도서아이디		도서명	 	작가명		출판사	 	가격		대여상태");
 		System.out.println("=======================================================================================================");
-		if (answer_category.size() == 0 && answer_bookname.size() == 0 && answer_author.size() == 0 && answer_publisher.size() == 0) {
+		if (flag1 && flag2 && flag3 && flag3) {
 			System.out.println("~~~~ 검색에 일치하는 도서가 없습니다 ~~~~");
 		}
 		String temp = null;
