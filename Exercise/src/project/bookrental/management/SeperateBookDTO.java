@@ -39,7 +39,13 @@ public class SeperateBookDTO implements Serializable{
 
 	@Override
 	public String toString() {
-		return bookdto.getIsbn() + "   " + bookid + "      " + bookdto.getBookname() + "	" + bookdto.getAuthor() + "		" + bookdto.getPublisher();		
+		return  bookdto.getIsbn() + "       " + bookid + "	" + bookdto.getBookname() + "	" + bookdto.getAuthor() +
+				"	" + bookdto.getPublisher();		
+	}
+	
+	public String toString2() {
+		return  bookid + "       " + bookdto.getIsbn() + "	" + bookdto.getBookname() + "	" + bookdto.getAuthor() +
+				"	" + bookdto.getPublisher();		
 	}
 
 
