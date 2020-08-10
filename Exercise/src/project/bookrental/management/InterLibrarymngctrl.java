@@ -19,4 +19,6 @@ public interface InterLibrarymngctrl {
 	void searchBook(Scanner sc);
 	void myRentalBookInfo(Scanner sc, UserDTO userDTO);
 	
+	void showCount(Scanner sc);
+	
 }

@@ -16,6 +16,7 @@ public class Librarymngctrl implements InterLibrarymngctrl{
 	private final String USERLIST = "C:\\iotestdata\\project\\library\\userlist.dat";
 	private final String SEPERATEBOOKLIST = "C:\\iotestdata\\project\\library\\seperatebooklist.dat";
 	private final String RENTALTASKLIST = "C:\\iotestdata\\project\\library\\rentaltasklist.dat";
+	private final String COUNTDTOLIST = "C:\\iotestdata\\project\\library\\countdtolist.dat";
 	private EmpMngSerializable serial2 = new EmpMngSerializable();
 	private Object libListObj;
 
@@ -32,7 +33,7 @@ public class Librarymngctrl implements InterLibrarymngctrl{
 				System.out.println(">>>> 사서 전용 메뉴 <<<<");
 			}
 			System.out.println("1. 사서가입 	2. 로그인 	3. 로그아웃  	4. 도서정보등록 	5. 개별도서등록");
-			System.out.println("6. 도서대여해주기 	7. 대여중인도서조회 		8. 도서반납해주기  	9. 나가기");
+			System.out.println("6. 도서대여해주기 	7. 대여중인도서조회 		8. 도서반납해주기  	9. 나가기		10. 모든 책들의 대여 횟수 ");
 			System.out.println("=> 메뉴번호선택 : ");
 			String temp = sc.nextLine();
 			
@@ -57,6 +58,8 @@ public class Librarymngctrl implements InterLibrarymngctrl{
 				returnBook(sc);
 			} else if (temp.equals("9")) {
 				break;
+			} else if (temp.equals("10")) {
+				showCount(sc);
 			} else {
 				System.out.println("잘못입력되었습니다. 다시 입력해주세요!");
 			}
@@ -96,6 +99,8 @@ public class Librarymngctrl implements InterLibrarymngctrl{
 					System.out.println(id + "는 이미 존재하므로 다른 회원ID를 입력하세요!!");
 					System.out.println("▶사서ID : ");
 					id = sc.nextLine();
+					System.out.println("▶암호 : ");
+					pwd = sc.nextLine();
 					flag = false;
 					continue;
 				} else {
@@ -281,6 +286,7 @@ public class Librarymngctrl implements InterLibrarymngctrl{
 					Calendar time = Calendar.getInstance();
 					SimpleDateFormat fm = new SimpleDateFormat("yyyy-MM-dd");
 					
+					
 					try {
 						Date to = Date.valueOf(rentalList.get(j).getReturnDay());
 						Date current = new Date(System.currentTimeMillis());
@@ -312,9 +318,28 @@ public class Librarymngctrl implements InterLibrarymngctrl{
 			}
 			break;	
 		}
+		
+		File file_ConutDTO = new File(COUNTDTOLIST); 
+		ArrayList<CountDTO> countDTOList = new ArrayList<CountDTO>();
+		
 		ArrayList<SeperateBookDTO> list2 = new ArrayList<SeperateBookDTO>();
 		Object libListObj2 = serial2.getObjectFromFile(SEPERATEBOOKLIST);
 		list2 = (ArrayList<SeperateBookDTO>) libListObj2;
+		CountDTO countDTO = new CountDTO();
+
+		// 파일이 없다면
+		if (!file_ConutDTO.exists()) {
+			countDTOList = new ArrayList<CountDTO>();
+			for (int i=0; i<list2.size(); i++) {
+				countDTO = new CountDTO("0", list2.get(i));
+				countDTOList.add(countDTO);
+			}
+			// 파일이 존재한다면
+		} else {
+			Object libListObj3 = serial2.getObjectFromFile(COUNTDTOLIST);
+			countDTOList = (ArrayList<CountDTO>) libListObj3;
+		}
+		
 		System.out.println("▶총대여권수 :");
 		String cnt = sc.nextLine(); 
 		boolean confirm2 = false;
@@ -334,17 +359,29 @@ public class Librarymngctrl implements InterLibrarymngctrl{
 						break;
 					}
 				}
+				for (int k=0; k<countDTOList.size(); k++) {
+					if (countDTOList.get(k).getSeperateBookDTO().getBookid().equals(bookId)) {
+						String temp_cnt = countDTOList.get(k).getCount();
+						countDTOList.remove(k);
+						countDTO = new CountDTO(String.valueOf(Integer.parseInt(temp_cnt) + 1), list2.get(i));
+						countDTOList.add(countDTO);
+						break;
+					}
+				}
 				if (confirm2 == false) System.out.println("~~~ 존재하지 않는 도서ID 입니다. 다시 입력하세요!! ~~~");
 				else break;
 			}
+			
 		}
-		
+		serial2.objectToFileSave(countDTOList, COUNTDTOLIST);
 		int m = serial2.objectToFileSave(rentalList, RENTALTASKLIST);
 		int n = serial2.objectToFileSave(list2, SEPERATEBOOKLIST);
 		if (n == 1 && m == 1) {
 			System.out.println(">>> 대여등록 성공!! <<<");
 			System.out.println(">>> 대여도서 비치중에서 대여중으로 변경함 <<<");
 		}
+		
+		
 	}
 
 	@Override
@@ -591,18 +628,18 @@ public class Librarymngctrl implements InterLibrarymngctrl{
 		System.out.println("=======================================================================================================");
 
 		String temp = null;
-		if (!(flag1 && flag2 && flag3 && flag4)) {
-			for (int i=0; i<list.size(); i++) {
-				if (answer_category.contains(list.get(i)) && answer_bookname.contains(list.get(i)) && answer_author.contains(list.get(i)) && answer_publisher.contains(list.get(i))) {
-					flag5 = true;
-					if (list.get(i).isRent == false) temp = "비치중";
-					else temp = "대여중";
-					System.out.print(list.get(i).toString()); 
-					System.out.printf("        %,d", Integer.parseInt(list.get(i).getBookdto().getPrice()));
-					System.out.printf("		%s\n", temp);
-				}
+		 
+		for (int i=0; i<list.size(); i++) {
+			if (answer_category.contains(list.get(i)) && answer_bookname.contains(list.get(i)) && answer_author.contains(list.get(i)) && answer_publisher.contains(list.get(i))) {
+				flag5 = true;
+				if (list.get(i).isRent == false) temp = "비치중";
+				else temp = "대여중";
+				System.out.print(list.get(i).toString()); 
+				System.out.printf("        %,d", Integer.parseInt(list.get(i).getBookdto().getPrice()));
+				System.out.printf("		%s\n", temp);
 			}
 		}
+		
 		if (!flag5) System.out.println("~~~ 검색에 일치하는 도서가 없습니다 ~~~");
 
 	}
@@ -629,6 +666,17 @@ public class Librarymngctrl implements InterLibrarymngctrl{
 				System.out.print("		" + answer.get(i).getUserDTO().getId() + "	" +answer.get(i).getUserDTO().getPhone());
 				System.out.println("	" + answer.get(i).getRentalDay() + "    " + answer.get(i).getReturnDay());
 			}
+		}
+	}
+
+	@Override
+	public void showCount(Scanner sc) {
+		ArrayList<CountDTO> list = new ArrayList<CountDTO>();
+		Object libListObj3 = serial2.getObjectFromFile(COUNTDTOLIST);
+		list = (ArrayList<CountDTO>) libListObj3;
+		
+		for (int i=0; i<list.size(); i++) {
+			System.out.println(list.get(i).toString());
 		}
 	}
 }
